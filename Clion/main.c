@@ -4,14 +4,15 @@
 
 int main(void)
 {
-    float AL[9] = {2,0,2,0,0,9,3,3,4};
-    float FC[9] = {2,0,2,0, 3,2,1,1,7};
+    double AL[9] = {2,0,2,0,0,9,3,3,4};
+    double FC[9] = {2,0,2,0, 3,2,1,1,7};
 
-    float AL_sig[900];
-    float FC_sig[900];
+    int len_filters = 29-1;
+    double AL_sig[900+28*2] = { 0.0 };
+    double FC_sig[900+28*2] = { 0.0 };
 
-    float AL_mu = 0;
-    float FC_mu = 0;
+    double AL_mu = 0;
+    double FC_mu = 0;
 
     for(int i = 0; i<9; i++){
         AL_mu  += AL[i];
@@ -21,33 +22,28 @@ int main(void)
     AL_mu /= 9;
     FC_mu /= 9;
 
-    for(int i = 0; i<900; i++){
+    for(int i = len_filters; i<900; i++){
             AL_sig[i] = AL[i%9] - AL_mu;
             FC_sig[i] = FC[i%9] - FC_mu;
     }
 
-    float filtered_AL[928];
-    float filtered_FC[928];
+    int len_output = 900+29-1;
+    double filtered_AL[len_output];
+    double filtered_FC[len_output];
 
-
-//    for(int n = 0; n<900; n++){
-//        for(int v=28 ; v>-1 ; v--){
-//            filtered_AL[n] += filter_a[v] * AL_sig[n];
-//
-//
-//        }
-//        printf("%.6f ", filtered_AL[n]);
+//    for (int i = 0; i <100; i++){
+//        printf("%f\n",FC_sig[i]);
 //    }
 
-    for(int n = 0; n<100; n++){
-        for(int v=28 ; v>-1 ; v--){
-//            filtered_AL[n] += filter_a[v] * AL_sig[n];
-            printf("filter_a[%d] * AL_sig[%d]", v,n);
 
+    for(int n = 0; n<len_output; n++){
+        for(int v = 29; v>-1; v--){
+            filtered_FC[n] = FC_sig[n] * filter_b[n-v];
         }
-        printf("\n\n");
-//        printf("%.6f ", filtered_AL[n]);
+        printf("x[%d] = %f\n", n,filtered_FC[n]);
     }
+
+
 
     return 0;
 }
