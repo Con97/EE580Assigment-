@@ -1,16 +1,17 @@
-#include "data.h"
-#include "math.h"
+#include "data.h" // Stores the filter weights
 #include "stdio.h"
 
 int main(void)
 {
+    //Both Student Numbers
     double AL[9] = {2,0,2,0,0,9,3,3,4};
     double FC[9] = {2,0,2,0, 3,2,1,1,7};
 
-    int len_filters = 29-1;
-    double AL_sig[900+28*2] = { 0.0 };
-    double FC_sig[900+28*2] = { 0.0 };
+    // padded signal with 28 zeros
+    double AL_sig[900+28] = { 0.0 };
+    double FC_sig[900+28] = { 0.0 };
 
+    // calculate mean of student numbers
     double AL_mu = 0;
     double FC_mu = 0;
 
@@ -22,28 +23,42 @@ int main(void)
     AL_mu /= 9;
     FC_mu /= 9;
 
-    for(int i = len_filters; i<900; i++){
+    // signal minus mean so signal is zero mean
+    for(int i = 0; i<900; i++){
             AL_sig[i] = AL[i%9] - AL_mu;
             FC_sig[i] = FC[i%9] - FC_mu;
     }
 
-    int len_output = 900+29-1;
-    double filtered_AL[len_output];
-    double filtered_FC[len_output];
-
-//    for (int i = 0; i <100; i++){
-//        printf("%f\n",FC_sig[i]);
-//    }
+    // length of filtered signal is signal length + filter length -1
+    double filtered_AL[928];
+    double filtered_FC[928];
 
 
-    for(int n = 0; n<len_output; n++){
-        for(int v = 29; v>-1; v--){
-            filtered_FC[n] = FC_sig[n] * filter_b[n-v];
+// Convolve sigs
+    for(int n = 0; n<928; n++){
+        filtered_FC[n] = 0;
+        filtered_AL[n] = 0;
+        for(int v = 0; (v<=n)&&(v<29); v++){
+            filtered_FC[n] += FC_sig[n-v] * filter_b[v];
+            filtered_AL[n] += AL_sig[n-v] * filter_a[v];
         }
-        printf("x[%d] = %f\n", n,filtered_FC[n]);
     }
 
+    // Write to file
+    FILE *filePtr;
+    filePtr = fopen("filter_FC.txt","w");
 
+    for(int i =0; i < 928; i++){
+        fprintf(filePtr,"%lf\n",filtered_FC[i]);
+    }
+    fclose(filePtr);
 
+    filePtr = fopen("filter_AL.txt","w");
+
+    for(int i =0; i < 928; i++){
+        fprintf(filePtr,"%lf\n",filtered_AL[i]);
+    }
+    fclose(filePtr);
     return 0;
+
 }
