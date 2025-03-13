@@ -27,7 +27,10 @@ uint16_t n_temp = 0;
 //---------------------------------------------------------
 void main(void)
 {
-
+    for(int j =0; j<buffer_len: j++)
+    {
+        buffer[j] = 0;
+    }
 	initAll();
 	return;  		// return to BIOS scheduler
 }
@@ -41,27 +44,68 @@ void check_led(){
     if(sw1){
     // THIS IS THE LEFT CHANNEL!!!
 
-    LED_turnOn(LED_1);
-    LED_turnOff(LED_2);
+   // LED_turnOn(LED_1);
+    //LED_turnOff(LED_2);
     if(sw2)
     {
-        LED_turnOn(LED_2);
+       // LED_turnOn(LED_2);
 
     }
     else
     {
-        LED_turnOff(LED_2);
-
-
+       // LED_turnOff(LED_2);
     }
     }
     else
     {
-        LED_turnOff(LED_2);
-        LED_turnOff(LED_1);        //turn everything off
+   //     LED_turnOff(LED_2);
+    //    LED_turnOff(LED_1);        //turn everything off
     }
 
 }
+
+void flash_LED_rec(void)
+{
+
+    if(sw1&&!sw2)
+    {
+      LED_toggle(LED_1);
+      LED_toggle(LED_2);
+    }
+    else if(!sw1)
+    {
+      LED_turnOff(LED_1);
+      LED_turnOff(LED_2);
+    }
+
+}
+
+void flash_LED_playback(void)
+{
+
+    if(sw1&&sw2)
+    {
+      LED_toggle(LED_1);
+      LED_turnOff(LED_2);
+    }
+//    else if(sw1&&!sw2&&(sw6||sw7||sw8))
+//    {
+//      LED_turnOff(LED_2);
+//    }
+
+
+}
+
+void flash_LED_filtering(void)
+{
+
+    if(sw1&&sw2&&(sw6||sw7||sw8))
+    {
+      LED_toggle(LED_2);
+    }
+
+}
+
 
 void dipPRD(void)
 {
@@ -130,7 +174,7 @@ void dipPRD(void)
 //      LED_turnOff(LED_2);
     }
 
-    check_led();
+   // check_led();
 
 }
 
@@ -151,6 +195,27 @@ int16_t get_buffer()
     n = n % buffer_len; // next buffer element
     n_temp = n;
     n++;
+
+    for(m = 0; (n<=m)&&(m<9); m++){
+               ylp[n] += (blp[n-m] * x[m]);
+               ybp[n] += (bbp[n-m] * x[m]);
+               yhp[n] += (bhp[n-m] * x[m]);
+
+               wlp[n] += (alp[m-m]*ylp[m]);
+               wbp[n] += (abp[m-m]*ybp[m]);
+               whp[n] += (ahp[m-m]*yhp[m]);
+           }
+    int output = ((xlp-ylp)*sw6+(xbp-ybp)sw7+(xhp-yhp)sw8)/a0
+      return output
+
+//
+//      for(v = 0; (v<=n)&&(v<28); v++){
+//          filtered_FC[n] += FC_sig_mu[n-v] * filter_b[v];
+//          filtered_AL[n] += AL_sig_mu[n-v] * filter_a[v];
+//      }
+
+
+    // Processing
     return buffer[n_temp];
 
 }

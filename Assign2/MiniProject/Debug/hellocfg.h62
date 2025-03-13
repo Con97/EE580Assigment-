@@ -81,6 +81,10 @@
 	.global	_SEG0
 	.global	_audioHWI
 	.global	_dipPRD
+	.global	_flash_LED
+	.global	_flash_LED_playback
+	.global	_flash_LED_rec
+	.global	_flash_LED_filtering
 
 ;; MODULE PARAMETERS
 GBL$                .set 1
