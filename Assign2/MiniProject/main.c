@@ -41,27 +41,70 @@ void check_led(){
     if(sw1){
     // THIS IS THE LEFT CHANNEL!!!
 
-    LED_turnOn(LED_1);
-    LED_turnOff(LED_2);
+   // LED_turnOn(LED_1);
+    //LED_turnOff(LED_2);
     if(sw2)
     {
-        LED_turnOn(LED_2);
+       // LED_turnOn(LED_2);
 
     }
     else
     {
-        LED_turnOff(LED_2);
+       // LED_turnOff(LED_2);
 
 
     }
     }
     else
     {
-        LED_turnOff(LED_2);
-        LED_turnOff(LED_1);        //turn everything off
+   //     LED_turnOff(LED_2);
+    //    LED_turnOff(LED_1);        //turn everything off
     }
 
 }
+
+void flash_LED_rec(void)
+{
+
+    if(sw1&&!sw2)
+    {
+      LED_toggle(LED_1);
+      LED_toggle(LED_2);
+    }
+    else if(!sw1)
+    {
+      LED_turnOff(LED_1);
+      LED_turnOff(LED_2);
+    }
+
+}
+
+void flash_LED_playback(void)
+{
+
+    if(sw1&&sw2)
+    {
+      LED_toggle(LED_1);
+      LED_turnOff(LED_2);
+    }
+//    else if(sw1&&!sw2&&(sw6||sw7||sw8))
+//    {
+//      LED_turnOff(LED_2);
+//    }
+
+
+}
+
+void flash_LED_filtering(void)
+{
+
+    if(sw1&&sw2&&(sw6||sw7||sw8))
+    {
+      LED_toggle(LED_2);
+    }
+
+}
+
 
 void dipPRD(void)
 {
@@ -130,7 +173,7 @@ void dipPRD(void)
 //      LED_turnOff(LED_2);
     }
 
-    check_led();
+   // check_led();
 
 }
 

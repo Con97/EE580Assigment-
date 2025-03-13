@@ -18,6 +18,9 @@ extern "C" {
 #endif
 
 extern far PRD_Obj PRD0;
+extern far PRD_Obj PRD1;
+extern far PRD_Obj PRD2;
+extern far PRD_Obj PRD3;
 extern far HST_Obj RTA_fromHost;
 extern far HST_Obj RTA_toHost;
 extern far SWI_Obj PRD_swi;

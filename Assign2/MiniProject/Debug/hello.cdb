@@ -111,7 +111,7 @@ type GlobalStatus {
         prop Visible :: 0
         prop Writable :: 1
     }
-    global DATE :: "Thu Mar 13 15:25:47 2025" { 
+    global DATE :: "Thu Mar 13 16:20:04 2025" { 
         prop Type :: "{21455EA3-B96A-11cf-9BFE-0000C0AC14C7}"
         prop Visible :: 0
         prop Writable :: 0
@@ -2845,7 +2845,7 @@ type PRD {
         prop Writable :: 0
         prop NoGen :: 1
     }
-    global gNumOf :: 1 { 
+    global gNumOf :: 4 { 
         prop Visible :: 0
         prop Writable :: 0
         prop NoGen :: 1
@@ -8738,7 +8738,7 @@ type STS {
         prop Writable :: 1
         prop NoGen :: 1
     }
-    global gNumEmbed :: 3 { 
+    global gNumEmbed :: 6 { 
         prop Visible :: 0
         prop Writable :: 0
         prop NoGen :: 1
@@ -10722,7 +10722,7 @@ object PWRM_slotFinalizer :: PRD {
     param function :: @__PWRM_finalizeSlot
     param arg0 :: 0
     param arg1 :: 0
-    param Order :: 0
+    param Order :: 1
     param iPri :: 0
     param filter :: 0
     param maxformat :: "%g ticks"
@@ -10830,7 +10830,67 @@ object PRD0 :: PRD {
     param function :: @_dipPRD
     param arg0 :: 0
     param arg1 :: 0
-    param Order :: 1
+    param Order :: 2
+    param iPri :: 0
+    param filter :: 0
+    param maxformat :: "%g ticks"
+    param sumformat :: "%g ticks"
+    param avgformat :: "%.2f ticks"
+    param unittype :: 2
+}
+
+object PRD1 :: PRD {
+    param iComment :: "<add comments here>"
+    param iIsUsed :: 1
+    param iId :: 0
+    param iDelUser :: "USER"
+    param iDelMsg :: "ok"
+    param period :: 50
+    param mode :: "continuous"
+    param function :: @_flash_LED_rec
+    param arg0 :: 0
+    param arg1 :: 0
+    param Order :: 3
+    param iPri :: 0
+    param filter :: 0
+    param maxformat :: "%g ticks"
+    param sumformat :: "%g ticks"
+    param avgformat :: "%.2f ticks"
+    param unittype :: 2
+}
+
+object PRD2 :: PRD {
+    param iComment :: "<add comments here>"
+    param iIsUsed :: 1
+    param iId :: 0
+    param iDelUser :: "USER"
+    param iDelMsg :: "ok"
+    param period :: 500
+    param mode :: "continuous"
+    param function :: @_flash_LED_playback
+    param arg0 :: 0
+    param arg1 :: 0
+    param Order :: 4
+    param iPri :: 0
+    param filter :: 0
+    param maxformat :: "%g ticks"
+    param sumformat :: "%g ticks"
+    param avgformat :: "%.2f ticks"
+    param unittype :: 2
+}
+
+object PRD3 :: PRD {
+    param iComment :: "<add comments here>"
+    param iIsUsed :: 1
+    param iId :: 0
+    param iDelUser :: "USER"
+    param iDelMsg :: "ok"
+    param period :: 167
+    param mode :: "continuous"
+    param function :: @_flash_LED_filtering
+    param arg0 :: 0
+    param arg1 :: 0
+    param Order :: 5
     param iPri :: 0
     param filter :: 0
     param maxformat :: "%g ticks"
