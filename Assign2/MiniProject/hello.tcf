@@ -79,6 +79,12 @@ bios.PRD.create("PRD0");
 bios.PRD.instance("PRD0").order = 1;
 bios.PRD.instance("PRD0").period = 500;
 bios.PRD.instance("PRD0").fxn = prog.extern("dipPRD");
+bios.PRD.instance("PRD0").period = 20;
+bios.PRD.instance("PRD0").period = 1;
+bios.PRD.instance("PRD0").period = 500;
+bios.PRD.instance("PRD0").period = 20;
+bios.PRD.instance("PRD0").period = 1000;
+bios.PRD.instance("PRD0").period = 500;
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {

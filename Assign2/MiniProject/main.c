@@ -3,11 +3,17 @@
 #include "math.h"
 
 
-int16_t volatile sw1 = 0xffff;
-int16_t volatile sw2 = 0xffff;
-int16_t volatile sw6 = 0xffff;
-int16_t volatile sw7 = 0xffff;
-int16_t volatile sw8 = 0xffff;
+//int16_t volatile sw1 = 0xffff;
+//int16_t volatile sw2 = 0xffff;
+//int16_t volatile sw6 = 0xffff;
+//int16_t volatile sw7 = 0xffff;
+//int16_t volatile sw8 = 0xffff;
+
+int16_t volatile sw1 = 0x0000;
+int16_t volatile sw2 = 0x0000;
+int16_t volatile sw6 = 0x0000;
+int16_t volatile sw7 = 0x0000;
+int16_t volatile sw8 = 0x0000;
 
 uint16_t fs = 8000;
 int16_t buffer[32000];
@@ -31,7 +37,6 @@ void main(void)
 //---------------------------------------------------------
 
 void check_led(){
-    int16_t s16 = 1;
 
     if(sw1){
     // THIS IS THE LEFT CHANNEL!!!
@@ -42,24 +47,18 @@ void check_led(){
     {
         LED_turnOn(LED_2);
 
-//              s16 = get_buffer(); // get sample from buffer for processing
-
     }
     else
     {
         LED_turnOff(LED_2);
 
-//              add_to_buffer(s16); // store sample in buffer
-//              s16 &= sw2;    // zero sample so no audio out
 
     }
     }
     else
     {
         LED_turnOff(LED_2);
-        LED_turnOff(LED_1);
-        s16 &= sw1;    // zero sample so no audio out
-        //turn everything off
+        LED_turnOff(LED_1);        //turn everything off
     }
 
 }
@@ -142,6 +141,7 @@ void add_to_buffer(int16_t s16)
     i = i % buffer_len; // next buffer element
     buffer[i] = s16;
     i++;
+   // LED_turnOn(LED_1);
 
 }
 
@@ -166,43 +166,38 @@ void audioHWI(void)
     int16_t s16;
 
     s16 = read_audio_sample();
-    if (MCASP->RSLOT)
+   if (MCASP->RSLOT)
     {
         if(sw1){
             // THIS IS THE LEFT CHANNEL!!!
 
-//            LED_turnOn(LED_1);
-//            LED_turnOff(LED_2);
             if(sw2)
             {
-//                LED_turnOn(LED_2);
-
                 s16 = get_buffer(); // get sample from buffer for processing
-
             }
             else
             {
-//                LED_turnOff(LED_2);
-
                 add_to_buffer(s16); // store sample in buffer
-                s16 &= sw2;    // zero sample so no audio out
-
+               // s16 = 0;    // zero sample so no audio out
             }
-        }
-        else
-        {
-//            LED_turnOff(LED_2);
-//            LED_turnOff(LED_1);
-            s16 &= sw1;    // zero sample so no audio out
-            //turn everything off
+       }
+       else
+       {
+              //add_to_buffer(s16); // store sample in buffer
+              s16 = 0; //sw1;    // zero sample so no audio out
+//            //turn everything off
         }
 
     }
-//    else {
-////       THIS IS THE RIGHT CHANNEL!!!
-//        s16 = process(s16);
-//        s16 &= sw1;
-//    }
+    else {
+      // THIS IS THE RIGHT CHANNEL!!!
+
+        s16 = 0;
+//
+//       //turn everything off
+               }
+
+
     write_audio_sample(s16);
 }
 
