@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -l"C:/ti/c6748/bsl/lib/evmc6748_bsl.lib" -llibc.a
+LIBS := C:/ti/c6748/bsl/lib/evmc6748_bsl.lib libc.a
 
