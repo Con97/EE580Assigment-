@@ -3,16 +3,6 @@
 #include "math.h"
 #include "Data.h"
 
-#define N 10  // Number of feedback coefficients
-#define M 10 // Number of feedforward coefficients
-#define BUFFER_SIZE (M + 1)  // Minimum size required for circular buffer
-
-//int16_t volatile sw1 = 0xffff;
-//int16_t volatile sw2 = 0xffff;
-//int16_t volatile sw6 = 0xffff;
-//int16_t volatile sw7 = 0xffff;
-//int16_t volatile sw8 = 0xffff;
-
 int16_t volatile sw1 = 0x0000;
 int16_t volatile sw2 = 0x0000;
 int16_t volatile sw6 = 0x0000;
@@ -20,12 +10,18 @@ int16_t volatile sw7 = 0x0000;
 int16_t volatile sw8 = 0x0000;
 
 // Circular buffers for past samples
-double x[BUFFER_SIZE] = {0}; // Input samples
-double y[BUFFER_SIZE] = {0}; // Output samples
-int index = 0; // Circular buffer index
+float x_lp[N_LP_B] = {0}; // Input samples
+float y_lp[N_LP_B] = {0}; // Output samples
+float x_bp[N_BP_B] = {0}; // Input samples
+float y_bp[N_BP_B] = {0}; // Output samples
+float x_hp[N_BP_B] = {0}; // Input samples
+float y_hp[N_BP_B] = {0}; // Output samples
+int index_lp = 0; // Circular buffer index
+int index_bp = 0; // Circular buffer index
+int index_hp = 0; // Circular buffer index
+int past_idx = 0;
 
 
-uint16_t fs = 8000;
 float buffer[32000];
 uint16_t buffer_len = 8000*4;
 float temp_lp[11];
@@ -33,9 +29,10 @@ uint16_t n = 0;
 uint16_t m = 0;
 uint16_t i = 0;
 uint16_t n_temp = 0;
-float y_lp = 0.0; //, ybp = 0, yhp = 0, den_lp = 0, den_bp = 0, den_hp = 0;
+float out_lp = 0.0f, out_bp = 0.0f, out_hp = 0.0f;
 uint16_t j,k;
-
+float B = 1.0f;  // Initial value
+float sample_temp = 1.0f;
 
 //---------------------------------------------------------
 //---------------------------------------------------------
@@ -43,8 +40,20 @@ void main(void)
 {
     for(j = 0; j<buffer_len; j++)
     {
-        buffer[j] = 0;
+        buffer[j] = 0.0f;
     }
+    for(j = 0; j<N_LP_A; j++)
+        {
+            x_lp[j] = 0.0f;
+            y_lp[j] = 0.0f;
+            x_hp[j] = 0.0f;
+            y_hp[j] = 0.0f;
+        }
+    for(j = 0; j<N_BP_A; j++)
+        {
+            x_bp[j] = 0.0f;
+            y_bp[j] = 0.0f;
+        }
 	initAll();
 	return;  		// return to BIOS scheduler
 }
@@ -53,30 +62,6 @@ void main(void)
 //---------------------------------------------------------
 //---------------------------------------------------------
 
-void check_led(){
-
-    if(sw1){
-    // THIS IS THE LEFT CHANNEL!!!
-
-   // LED_turnOn(LED_1);
-    //LED_turnOff(LED_2);
-    if(sw2)
-    {
-       // LED_turnOn(LED_2);
-
-    }
-    else
-    {
-       // LED_turnOff(LED_2);
-    }
-    }
-    else
-    {
-   //     LED_turnOff(LED_2);
-    //    LED_turnOff(LED_1);        //turn everything off
-    }
-
-}
 
 void flash_LED_rec(void)
 {
@@ -102,11 +87,6 @@ void flash_LED_playback(void)
       LED_toggle(LED_1);
       LED_turnOff(LED_2);
     }
-//    else if(sw1&&!sw2&&(sw6||sw7||sw8))
-//    {
-//      LED_turnOff(LED_2);
-//    }
-
 
 }
 
@@ -138,57 +118,45 @@ void dipPRD(void)
 	if(dip_status1)
 	{
 		sw1 = 0xffff;
-//		LED_turnOn(LED_2);
 	}
 	else
 	{
 		sw1 = 0x0000;
-//		LED_turnOff(LED_2);
 	}
 
 	if(dip_status2)
     {
         sw2 = 0xffff;
-//      LED_turnOn(LED_2);
     }
     else
     {
         sw2 = 0x0000;
-//      LED_turnOff(LED_2);
     }
 	if(dip_status6)
     {
         sw6 = 0xffff;
-//      LED_turnOn(LED_2);
     }
     else
     {
         sw6 = 0x0000;
-//      LED_turnOff(LED_2);
     }
 
     if(dip_status7)
     {
         sw7 = 0xffff;
-//      LED_turnOn(LED_2);
     }
     else
     {
         sw7 = 0x0000;
-//      LED_turnOff(LED_2);
     }
     if(dip_status8)
         {
         sw8 = 0xffff;
-//      LED_turnOn(LED_2);
     }
     else
     {
         sw8 = 0x0000;
-//      LED_turnOff(LED_2);
     }
-
-   // check_led();
 
 }
 
@@ -199,72 +167,107 @@ void add_to_buffer(int16_t s16)
     i = i % buffer_len; // next buffer element
     buffer[i] = s16;
     i++;
-   // LED_turnOn(LED_1);
 
 }
 
+float iir_filter_lp(float input) {
 
-double iir_filter(double input) {
-    // Update circular buffer index
-    index = (index + 1) % BUFFER_SIZE;
+    // Update index_lp with faster wrap
+    index_lp = (index_lp + 1) % N_LP_A;
 
     // Store new input
-    x[index] = input;
+    x_lp[index_lp] = input;
 
-    // Compute output using circular buffer
-    y[index] = 0;
-    for (i = 0; i <= M; i++) {
-        int xi = (index - i + BUFFER_SIZE) % BUFFER_SIZE;
-        y[index] += LP_B[i] * x[xi];
-    }
-    for (j = 1; j <= N; j++) {
-        int yj = (index - j + BUFFER_SIZE) % BUFFER_SIZE;
-        y[index] -= LP_A[j] * y[yj];
+    // Initialize output with b[0]*x_lp[n] term (current input)
+    float output = LP_B[0] * input;
+
+    // Single loop for both feedforward and feedback
+    // Assumes M == N (equal order for both parts)
+    for (i = 1; i <= N_LP_A-1; i++) {
+        past_idx = (index_lp - i + N_LP_A) % N_LP_A;
+        output += LP_B[i] * x_lp[past_idx];    // Feedforward term
+        output -= LP_A[i] * y_lp[past_idx];    // Feedback term
     }
 
-    return y[index]; // Return current filtered output
+    // Store result
+    y_lp[index_lp] = output;
+    return output;
 }
 
+float iir_filter_bp(float input) {
 
+    // Update index_bp with faster wrap
+    index_bp = (index_bp + 1) % N_BP_A;
 
+    // Store new input
+    x_bp[index_bp] = input;
+
+    // Initialize output with b[0]*x_bp[n] term (current input)
+    float output = BP_B[0] * input;
+
+    // Single loop for both feedforward and feedback
+    // Assumes M == N (equal order for both parts)
+    for (i = 1; i <= N_BP_A-1; i++) {
+        past_idx = (index_bp - i + N_BP_A) % N_BP_A;
+        output += BP_B[i] * x_bp[past_idx];    // Feedforward term
+        output -= BP_A[i] * y_bp[past_idx];    // Feedback term
+    }
+
+    // Store result
+    y_bp[index_bp] = output;
+    return output;
+}
+
+float iir_filter_hp(float input) {
+
+    // Update index_hp with faster wrap
+    index_hp = (index_hp + 1) % N_HP_A;
+
+    // Store new input
+    x_hp[index_hp] = input;
+
+    // Initialize output with b[0]*x_hp[n] term (current input)
+    float output = HP_B[0] * input;
+
+    // Single loop for both feedforward and feedback
+    // Assumes M == N (equal order for both parts)
+    for (i = 1; i <= N_HP_A-1; i++) {
+        past_idx = (index_hp - i + N_HP_A) % N_HP_A;
+        output += HP_B[i] * x_hp[past_idx];    // Feedforward term
+        output -= HP_A[i] * y_hp[past_idx];    // Feedback term
+    }
+
+    // Store result
+    y_hp[index_hp] = output;
+    return output;
+}
 
 int16_t get_buffer()
 {
 
     n = n % buffer_len; // next buffer element
     n_temp = n;
-//
-//
-//    temp_lp[0] = 0;
-//
-//    // When next audio sample is to be filtered
-//    temp_lp[n] = buffer[n];
-//    for (k = 1; k<N_LP_A; k++){
-//        temp[n] -= LP_A[k]*temp[n-k];
-//    }
-//    for (k = 0; k<N_LP_B; k++){
-//        y_lp += LP_B[k]*temp[n-k];
-//    }
-
     n++;
 
-    y_lp = iir_filter(buffer[n_temp]);
-    y_lp = iir_filter(buffer[n_temp]);
-    y_lp = iir_filter(buffer[n_temp]);
+    sample_temp = buffer[n_temp];
 
-    return buffer[n_temp];
+    B = 1.0f;
 
+//    out_lp = iir_filter_lp_single_loop(sample_temp);
+    out_lp = iir_filter_lp(sample_temp);
+    out_bp = iir_filter_bp(sample_temp);
+    out_hp = iir_filter_hp(sample_temp);
 
+    out_lp *= (sw6 != 0x00000);
+    out_bp *= (sw7 != 0x00000);
+    out_hp *= (sw8 != 0x00000);
 
-    //* !(sw6||sw7||sw8) + y_lp * sw6;
+    // Multiply by a condition that evaluates to 0 if any switch is off, otherwise 1
+    sample_temp *= (sw6 == 0x00000) * (sw7 == 0x00000) * (sw8 == 0x00000);
 
-
-
-    // Processing
+    return  sample_temp + out_bp + out_lp  + out_hp;
 
 }
-
-
 
 
 //---------------------------------------------------------
@@ -292,7 +295,6 @@ void audioHWI(void)
        }
        else
        {
-              //add_to_buffer(s16); // store sample in buffer
               s16 = 0; //sw1;    // zero sample so no audio out
 //            //turn everything off
         }
@@ -309,28 +311,3 @@ void audioHWI(void)
 
     write_audio_sample(s16);
 }
-
-//void audioHWI(void)
-//{
-//	int16_t s16;
-//
-//	s16 = read_audio_sample();
-//	if (MCASP->RSLOT)
-//	{
-//		// THIS IS THE LEFT CHANNEL!!!
-//	    i =  n%buff;
-//		s16 = process(s16, i);
-//		s16 &= mask;
-//		n++;
-//	}
-//	else {
-////		 THIS IS THE RIGHT CHANNEL!!!
-//		s16 = process(s16);
-//		s16 &= mask;
-//
-//	}
-//	write_audio_sample(s16);
-//}
-
-
-
