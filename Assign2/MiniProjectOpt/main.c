@@ -21,15 +21,14 @@ float x_bp[N_BP_B] = {0}; // Input samples
 float y_bp[N_BP_B] = {0}; // Output samples
 float x_hp[N_BP_B] = {0}; // Input samples
 float y_hp[N_BP_B] = {0}; // Output samples
-int index_lp = 0; // Circular buffer index
-int index_bp = 0; // Circular buffer index
-int index_hp = 0; // Circular buffer index
-int past_idx = 0;
+uint16_t index_lp = 0; // Circular buffer index
+uint16_t index_bp = 0; // Circular buffer index
+uint16_t index_hp = 0; // Circular buffer index
+uint16_t past_idx = 0;
 
 
 float buffer[32000];
 uint16_t buffer_len = 8000*4;
-float temp_lp[11];
 uint16_t n = 0;
 uint16_t m = 0;
 uint16_t i = 0;
@@ -39,6 +38,8 @@ uint16_t j,k;
 float B = 1.0f;  // Initial value
 float sample_temp = 1.0f;
 
+
+int index_lp_T = 0;
 //---------------------------------------------------------
 //---------------------------------------------------------
 
@@ -184,7 +185,9 @@ void add_to_buffer(int16_t s16)
 float iir_filter_lp(float input) {
 
     // Update index_lp with faster wrap
-    index_lp = (index_lp + 1) % N_LP_A;
+    index_lp_T = (index_lp + 1) % N_LP_A;
+//    index_lp = (index_lp + 1) & (N_LP_A - 1);
+//    index = (index + 1) & (size - 1);
 
     // Store new input
     x_lp[index_lp] = input;
@@ -195,6 +198,7 @@ float iir_filter_lp(float input) {
     // Single loop for both feedforward and feedback
     #pragma UNROLL(N_LP_A-1);
     for (i = 1; i <= N_LP_A-1; i++) {
+//        past_idx = (index_lp - i + N_LP_A) & (N_LP_A - 1);
         past_idx = (index_lp - i + N_LP_A) % N_LP_A;
         output += LP_B[i] * x_lp[past_idx];    // Feedforward term
         output -= LP_A[i] * y_lp[past_idx];    // Feedback term
@@ -209,7 +213,9 @@ float iir_filter_lp(float input) {
 float iir_filter_bp(float input) {
 
     // Update index_bp with faster wrap
-    index_bp = (index_bp + 1) % N_BP_A;
+//    index_bp = (index_bp + 1) & (N_BP_A - 1);
+      index_bp = (index_bp + 1) % N_BP_A;
+
 
     // Store new input
     x_bp[index_bp] = input;
@@ -220,6 +226,7 @@ float iir_filter_bp(float input) {
     // Single loop for both feedforward and feedback
     #pragma UNROLL(N_BP_A-1);
     for (i = 1; i <= N_BP_A-1; i++) {
+//        past_idx = (index_bp - i + N_BP_A) & (N_BP_A - 1);
         past_idx = (index_bp - i + N_BP_A) % N_BP_A;
         output += BP_B[i] * x_bp[past_idx];    // Feedforward term
         output -= BP_A[i] * y_bp[past_idx];    // Feedback term
@@ -233,7 +240,9 @@ float iir_filter_bp(float input) {
 float iir_filter_hp(float input) {
 
     // Update index_hp with faster wrap
+//    index_hp = (index_hp + 1) & (N_HP_A - 1);
     index_hp = (index_hp + 1) % N_HP_A;
+
 
     // Store new input
     x_hp[index_hp] = input;
@@ -244,6 +253,7 @@ float iir_filter_hp(float input) {
     // Single loop for both feedforward and feedback
     #pragma UNROLL(N_HP_A-1);
     for (i = 1; i <= N_HP_A-1; i++) {
+//        past_idx = (index_hp - i + N_HP_A) & (N_HP_A - 1);
         past_idx = (index_hp - i + N_HP_A) % N_HP_A;
         output += HP_B[i] * x_hp[past_idx];    // Feedforward term
         output -= HP_A[i] * y_hp[past_idx];    // Feedback term
@@ -253,7 +263,6 @@ float iir_filter_hp(float input) {
     y_hp[index_hp] = output;
     return output;
 }
-
 int16_t get_buffer()
 {
 
@@ -292,6 +301,7 @@ int16_t get_buffer()
     return  sample_temp + out_bp + out_lp  + out_hp;
 
 }
+
 
 
 //---------------------------------------------------------
