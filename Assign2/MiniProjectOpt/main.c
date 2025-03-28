@@ -185,9 +185,8 @@ void add_to_buffer(int16_t s16)
 float iir_filter_lp(float input) {
 
     // Update index_lp with faster wrap
-    index_lp_T = (index_lp + 1) % N_LP_A;
+    index_lp = (index_lp + 1) % N_LP_A;
 //    index_lp = (index_lp + 1) & (N_LP_A - 1);
-//    index = (index + 1) & (size - 1);
 
     // Store new input
     x_lp[index_lp] = input;
@@ -196,7 +195,8 @@ float iir_filter_lp(float input) {
     float output = LP_B[0] * input;
 
     // Single loop for both feedforward and feedback
-    #pragma UNROLL(N_LP_A-1);
+    #pragma UNROLL(10);
+    #pragma MUST_ITERATE(10,10)
     for (i = 1; i <= N_LP_A-1; i++) {
 //        past_idx = (index_lp - i + N_LP_A) & (N_LP_A - 1);
         past_idx = (index_lp - i + N_LP_A) % N_LP_A;
@@ -224,7 +224,8 @@ float iir_filter_bp(float input) {
     float output = BP_B[0] * input;
 
     // Single loop for both feedforward and feedback
-    #pragma UNROLL(N_BP_A-1);
+    #pragma UNROLL(16);
+    #pragma MUST_ITERATE(16, 16)
     for (i = 1; i <= N_BP_A-1; i++) {
 //        past_idx = (index_bp - i + N_BP_A) & (N_BP_A - 1);
         past_idx = (index_bp - i + N_BP_A) % N_BP_A;
@@ -251,7 +252,8 @@ float iir_filter_hp(float input) {
     float output = HP_B[0] * input;
 
     // Single loop for both feedforward and feedback
-    #pragma UNROLL(N_HP_A-1);
+    #pragma UNROLL(10);
+    #pragma MUST_ITERATE(10, 10)
     for (i = 1; i <= N_HP_A-1; i++) {
 //        past_idx = (index_hp - i + N_HP_A) & (N_HP_A - 1);
         past_idx = (index_hp - i + N_HP_A) % N_HP_A;

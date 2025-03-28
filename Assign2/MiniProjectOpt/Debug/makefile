@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c6000_8.3.12
+CG_TOOL_ROOT := C:/ti/ccs1271/ccs/tools/compiler/c6000_7.3.23
 
 GEN_OPTS__FLAG := 
 GEN_CMDS__FLAG := -l"./hellocfg.cmd" 
@@ -137,7 +137,7 @@ all: $(OBJS) $(GEN_CMDS)
 MiniProjectOpt.out: $(OBJS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: C6000 Linker'
-	"C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c6000_8.3.12/bin/cl6x" -mv6740 -g -O2 --define=c6748 --display_error_number --diag_warning=225 --abi=coffabi -z -m"MiniProjectOpt.map" --stack_size=0x800 --heap_size=0x800 --warn_sections --display_error_number -i"C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c6000_8.3.12/lib" -i"C:/ti/ccs1271/ccs/tools/compiler/ti-cgt-c6000_8.3.12/include" --reread_libs --xml_link_info="MiniProjectOpt_linkInfo.xml" --rom_model -o "MiniProjectOpt.out" $(ORDERED_OBJS)
+	"C:/ti/ccs1271/ccs/tools/compiler/c6000_7.3.23/bin/cl6x" -mv6740 -g -O2 --define=c6748 --display_error_number --diag_warning=225 --abi=coffabi -z -m"MiniProjectOpt.map" --stack_size=0x800 --heap_size=0x800 --warn_sections --display_error_number -i"C:/ti/ccs1271/ccs/tools/compiler/c6000_7.3.23/lib" -i"C:/ti/ccs1271/ccs/tools/compiler/c6000_7.3.23/include" -i"C:/ti/bios_5_42_01_09/packages/ti/rtdx/lib/c6000" -i"C:/ti/bios_5_42_01_09/packages/ti/bios/lib" --reread_libs --xml_link_info="MiniProjectOpt_linkInfo.xml" --rom_model -o "MiniProjectOpt.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
